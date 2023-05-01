@@ -38,7 +38,7 @@ jobs:
   #################
   # BUILD LAMBDAS #
   #################
-  build-application:
+  BUILD-application:
     runs-on: ubuntu-latest
     needs: check_for_lambda_changes
     if: ${{ needs.check_for_lambda_changes.outputs.application == 'true' }}
@@ -69,7 +69,7 @@ jobs:
           aws s3 cp ${{ env.APPLICATION_ARTIFACT }} s3://${{ secrets.AWS_S3_BUCKET_ID_OREGON }}/application/
           aws s3 cp ${{ env.APPLICATION_ARTIFACT }} s3://${{ secrets.AWS_S3_BUCKET_ID_VIRGINIA }}/application/
 
-  build-disbursements:
+  BUILD-disbursements:
     runs-on: ubuntu-latest
     needs: check_for_lambda_changes
     if: ${{ needs.check_for_lambda_changes.outputs.disbursements == 'true' }}
@@ -103,9 +103,9 @@ jobs:
   #################
   # DEPLOY TO DEV #
   #################
-  deploy-application-to-dev:
+  DEV-application:
     runs-on: ubuntu-latest
-    needs: build-application
+    needs: BUILD-application
     environment: dev
     steps:
       - name: Download artifact
@@ -122,9 +122,9 @@ jobs:
       - name: Deploy to dev - Virginia
         run: aws lambda update-function-code --publish --function-name ${{ env.APPLICATION_FUNCTION_NAME }} --zip-file fileb://${{ env.APPLICATION_ARTIFACT }} --region us-east-1
 
-  deploy-disbursements-to-dev:
+  DEV-disbursements:
     runs-on: ubuntu-latest
-    needs: build-disbursements
+    needs: BUILD-disbursements
     environment: dev
     steps:
       - name: Download artifact
@@ -144,9 +144,9 @@ jobs:
   ##################
   # DEPLOY TO TEST #
   ##################
-  deploy-application-to-test:
+  TEST-application:
     runs-on: ubuntu-latest
-    needs: deploy-application-to-dev
+    needs: DEV-application
     environment: test
     steps:
       - name: Download artifact
@@ -163,9 +163,9 @@ jobs:
       - name: Deploy to dev - Virginia
         run: aws lambda update-function-code --publish --function-name ${{ env.APPLICATION_FUNCTION_NAME }} --zip-file fileb://${{ env.APPLICATION_ARTIFACT }} --region us-east-1
 
-  deploy-disbursements-to-test:
+  TEST-disbursements:
     runs-on: ubuntu-latest
-    needs: deploy-disbursements-to-dev
+    needs: DEV-disbursements
     environment: test
     steps:
       - name: Download artifact
@@ -185,9 +185,9 @@ jobs:
   ##################
   # DEPLOY TO PROD #
   ##################
-  deploy-application-to-prod:
+  PROD-application:
     runs-on: ubuntu-latest
-    needs: deploy-application-to-test
+    needs: TEST-application
     environment: prod
     steps:
       - name: Download artifact
@@ -204,9 +204,9 @@ jobs:
       - name: Deploy to dev - Virginia
         run: aws lambda update-function-code --publish --function-name ${{ env.APPLICATION_FUNCTION_NAME }} --zip-file fileb://${{ env.APPLICATION_ARTIFACT }} --region us-east-1
 
-  deploy-disbursements-to-prod:
+  PROD-disbursements:
     runs-on: ubuntu-latest
-    needs: deploy-disbursements-to-test
+    needs: TEST-disbursements
     environment: prod
     steps:
       - name: Download artifact
