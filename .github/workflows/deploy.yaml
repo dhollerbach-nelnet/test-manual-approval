@@ -63,7 +63,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-region: ${{ secrets.AWS_REGION }}
-          role-duration-seconds: 10
+          role-duration-seconds: 3600
           role-session-name: build-${{ env.APPLICATION_FUNCTION_NAME }}
           role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
       - name: Upload to S3
@@ -96,7 +96,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-region: ${{ secrets.AWS_REGION }}
-          role-duration-seconds: 10
+          role-duration-seconds: 3600
           role-session-name: build-${{ env.DISBURSEMENTS_FUNCTION_NAME }}
           role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
       - name: Upload to S3
@@ -120,6 +120,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-region: ${{ secrets.AWS_REGION }}
+          role-duration-seconds: 3600
           role-session-name: dev-${{ env.APPLICATION_FUNCTION_NAME }}
           role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
       - name: Deploy to dev - Oregon
@@ -140,6 +141,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-region: ${{ secrets.AWS_REGION }}
+          role-duration-seconds: 3600
           role-session-name: dev-${{ env.DISBURSEMENTS_FUNCTION_NAME }}
           role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
       - name: Deploy to dev - Oregon
