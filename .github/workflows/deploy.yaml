@@ -30,7 +30,7 @@ jobs:
   ################
   # DEPLOY TO S3 #
   ################
-  application-to-s3:
+  build-application:
     outputs:
       oregon_s3_object_id: s3://${{ secrets.AWS_S3_BUCKET_ID_OREGON }}/application/${{ github.sha }}.zip
       virginia_s3_object_id: s3://${{ secrets.AWS_S3_BUCKET_ID_VIRGINIA }}/application/${{ github.sha }}.zip
@@ -64,7 +64,7 @@ jobs:
       #     aws s3 cp ${{ github.sha }}.zip s3://${{ secrets.AWS_S3_BUCKET_ID_OREGON }}/application/
       #     aws s3 cp ${{ github.sha }}.zip s3://${{ secrets.AWS_S3_BUCKET_ID_VIRGINIA }}/application/
 
-  disbursements-to-s3:
+  build-disbursements:
     outputs:
       oregon_s3_object_id: s3://${{ secrets.AWS_S3_BUCKET_ID_OREGON }}/disbursements/${{ github.sha }}.zip
       virginia_s3_object_id: s3://${{ secrets.AWS_S3_BUCKET_ID_VIRGINIA }}/disbursements/${{ github.sha }}.zip
