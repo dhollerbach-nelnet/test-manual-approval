@@ -31,6 +31,9 @@ jobs:
   # DEPLOY TO S3 #
   ################
   application-to-s3:
+    outputs:
+      oregon_s3_object_id: s3://${{ secrets.AWS_S3_BUCKET_ID_OREGON }}/application/${{ github.sha }}.zip
+      virginia_s3_object_id: s3://${{ secrets.AWS_S3_BUCKET_ID_VIRGINIA }}/application/${{ github.sha }}.zip
     runs-on: ubuntu-latest
     needs: check_for_lambda_changes
     if: ${{ needs.check_for_lambda_changes.outputs.application == 'true' }}
@@ -45,18 +48,26 @@ jobs:
       - name: Run npm install
         run: npm install
       - name: Zip files
-        run: zip -r ${{ github.sha }}.zip *
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        run: zip -r application-${{ github.sha }}.zip *
+      - name: Upload zip to GitHub Actions
+        uses: actions/upload-artifact@v3
         with:
-          role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
-          aws-region: ${{ secrets.AWS_REGION }}
-      - name: Copy files to S3
-        run: |
-          aws s3 cp ${{ github.sha }}.zip s3://${{ secrets.AWS_S3_BUCKET_ID_OREGON }}/application/
-          aws s3 cp ${{ github.sha }}.zip s3://${{ secrets.AWS_S3_BUCKET_ID_VIRGINIA }}/application/
+          name: application-${{ github.sha }}.zip
+          path: ${{ github.sha }}.zip
+      # - name: Configure AWS credentials
+      #   uses: aws-actions/configure-aws-credentials@v2
+      #   with:
+      #     role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
+      #     aws-region: ${{ secrets.AWS_REGION }}
+      # - name: Copy files to S3
+      #   run: |
+      #     aws s3 cp ${{ github.sha }}.zip s3://${{ secrets.AWS_S3_BUCKET_ID_OREGON }}/application/
+      #     aws s3 cp ${{ github.sha }}.zip s3://${{ secrets.AWS_S3_BUCKET_ID_VIRGINIA }}/application/
 
   disbursements-to-s3:
+    outputs:
+      oregon_s3_object_id: s3://${{ secrets.AWS_S3_BUCKET_ID_OREGON }}/disbursements/${{ github.sha }}.zip
+      virginia_s3_object_id: s3://${{ secrets.AWS_S3_BUCKET_ID_VIRGINIA }}/disbursements/${{ github.sha }}.zip
     runs-on: ubuntu-latest
     needs: check_for_lambda_changes
     if: ${{ needs.check_for_lambda_changes.outputs.disbursements == 'true' }}
@@ -71,80 +82,89 @@ jobs:
       - name: Run npm install
         run: npm install
       - name: Zip files
-        run: zip -r ${{ github.sha }}.zip *
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        run: zip -r disbursements-${{ github.sha }}.zip *
+      - name: Upload zip to GitHub Actions
+        uses: actions/upload-artifact@v3
         with:
-          role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
-          aws-region: ${{ secrets.AWS_REGION }}
-      - name: Copy files to S3
-        run: |
-          aws s3 cp ${{ github.sha }}.zip s3://${{ secrets.AWS_S3_BUCKET_ID_OREGON }}/disbursements/
-          aws s3 cp ${{ github.sha }}.zip s3://${{ secrets.AWS_S3_BUCKET_ID_VIRGINIA }}/disbursements/
+          name: disbursements-${{ github.sha }}.zip
+          path: ${{ github.sha }}.zip
+      # - name: Configure AWS credentials
+      #   uses: aws-actions/configure-aws-credentials@v2
+      #   with:
+      #     role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
+      #     aws-region: ${{ secrets.AWS_REGION }}
+      # - name: Copy files to S3
+      #   run: |
+      #     aws s3 cp ${{ github.sha }}.zip s3://${{ secrets.AWS_S3_BUCKET_ID_OREGON }}/disbursements/
+      #     aws s3 cp ${{ github.sha }}.zip s3://${{ secrets.AWS_S3_BUCKET_ID_VIRGINIA }}/disbursements/
 
-  #################
-  # DEPLOY TO DEV #
-  #################
-  application-to-dev:
-    runs-on: ubuntu-latest
-    needs: application-to-s3
-    steps:
-      - uses: actions/checkout@v3
-      - run: echo 'Deploying application to dev'
+  # #################
+  # # DEPLOY TO DEV #
+  # #################
+  # application-to-dev:
+  #   runs-on: ubuntu-latest
+  #   needs: application-to-s3
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - run: echo 'Deploying application to dev'
+  #     - run: aws lambda update-function-code --publish --function-name $FUNCTION --zip-file fileb://dist/lambda.zip
+  #       env:
+  #         FUNCTION: application
+  #         S3_OBJECT_ID: 
 
-  disbursements-to-dev:
-    runs-on: ubuntu-latest
-    needs: disbursements-to-s3
-    steps:
-      - uses: actions/checkout@v3
-      - run: echo 'Deploying disbursements to dev'
+  # disbursements-to-dev:
+  #   runs-on: ubuntu-latest
+  #   needs: disbursements-to-s3
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - run: echo 'Deploying disbursements to dev'
 
-  ##################
-  # DEPLOY TO TEST #
-  ##################
-  require-developer-approval:
-    runs-on: ubuntu-latest
-    needs: [application-to-dev, disbursements-to-dev]
-    environment: test
-    steps:
-      - uses: actions/checkout@v3
-      - run: echo 'Waiting for developer approval'
+  # ##################
+  # # DEPLOY TO TEST #
+  # ##################
+  # require-developer-approval:
+  #   runs-on: ubuntu-latest
+  #   needs: [application-to-dev, disbursements-to-dev]
+  #   environment: test
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - run: echo 'Waiting for developer approval'
 
-  application-to-test:
-    runs-on: ubuntu-latest
-    needs: require-developer-approval
-    steps:
-      - uses: actions/checkout@v3
-      - run: echo 'Deploying application to test'
+  # application-to-test:
+  #   runs-on: ubuntu-latest
+  #   needs: require-developer-approval
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - run: echo 'Deploying application to test'
 
-  disbursements-to-test:
-    runs-on: ubuntu-latest
-    needs: require-developer-approval
-    steps:
-      - uses: actions/checkout@v3
-      - run: echo 'Deploying disbursements to test'
+  # disbursements-to-test:
+  #   runs-on: ubuntu-latest
+  #   needs: require-developer-approval
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - run: echo 'Deploying disbursements to test'
 
-  ##################
-  # DEPLOY TO PROD #
-  ##################
-  require-business-approval:
-    runs-on: ubuntu-latest
-    needs: [application-to-test, disbursements-to-test]
-    environment: prod
-    steps:
-      - uses: actions/checkout@v3
-      - run: echo 'Waiting for business approval'
+  # ##################
+  # # DEPLOY TO PROD #
+  # ##################
+  # require-business-approval:
+  #   runs-on: ubuntu-latest
+  #   needs: [application-to-test, disbursements-to-test]
+  #   environment: prod
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - run: echo 'Waiting for business approval'
 
-  application-to-prod:
-    runs-on: ubuntu-latest
-    needs: require-business-approval
-    steps:
-      - uses: actions/checkout@v3
-      - run: echo 'Deploying application to prod'
+  # application-to-prod:
+  #   runs-on: ubuntu-latest
+  #   needs: require-business-approval
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - run: echo 'Deploying application to prod'
 
-  disbursements-to-prod:
-    runs-on: ubuntu-latest
-    needs: require-business-approval
-    steps:
-      - uses: actions/checkout@v3
-      - run: echo 'Deploying disbursements to prod'
+  # disbursements-to-prod:
+  #   runs-on: ubuntu-latest
+  #   needs: require-business-approval
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - run: echo 'Deploying disbursements to prod'
