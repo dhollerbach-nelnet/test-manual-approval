@@ -9,6 +9,14 @@ permissions:
   id-token: write
   contents: read
 
+env:
+  APPLICATION:
+    ARTIFACT: application-${{ github.sha }}.zip
+    WORKING_DIRECTORY: ./application
+  DISBURSEMENTS:
+    ARTIFACT: disbursements-${{ github.sha }}.zip
+    WORKING_DIRECTORY: ./disbursements
+
 jobs:
   check_for_lambda_changes:
     outputs:
@@ -31,14 +39,12 @@ jobs:
   # DEPLOY TO S3 #
   ################
   build-application:
-    outputs:
-      artifact: application-${{ github.sha }}.zip
     runs-on: ubuntu-latest
     needs: check_for_lambda_changes
     if: ${{ needs.check_for_lambda_changes.outputs.application == 'true' }}
     defaults:
       run:
-        working-directory: ./application
+        working-directory: ${{ env.APPLICATION.WORKING_DIRECTORY }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -47,31 +53,20 @@ jobs:
       - name: Run npm install
         run: npm install
       - name: Zip files
-        run: zip -r application-${{ github.sha }}.zip *
+        run: zip -r ${{ env.APPLICATION.ARTIFACT }} *
       - name: Upload zip to GitHub Actions
         uses: actions/upload-artifact@v3
         with:
-          name: application-${{ github.sha }}.zip
-          path: ./application/application-${{ github.sha }}.zip
-      # - name: Configure AWS credentials
-      #   uses: aws-actions/configure-aws-credentials@v2
-      #   with:
-      #     role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
-      #     aws-region: ${{ secrets.AWS_REGION }}
-      # - name: Copy files to S3
-      #   run: |
-      #     aws s3 cp ${{ github.sha }}.zip s3://${{ secrets.AWS_S3_BUCKET_ID_OREGON }}/application/
-      #     aws s3 cp ${{ github.sha }}.zip s3://${{ secrets.AWS_S3_BUCKET_ID_VIRGINIA }}/application/
+          name: ${{ env.APPLICATION.ARTIFACT }}
+          path: ${{ env.APPLICATION.WORKING_DIRECTORY }}/${{ env.APPLICATION.ARTIFACT }}
 
   build-disbursements:
-    outputs:
-      artifact: disbursements-${{ github.sha }}.zip
     runs-on: ubuntu-latest
     needs: check_for_lambda_changes
     if: ${{ needs.check_for_lambda_changes.outputs.disbursements == 'true' }}
     defaults:
       run:
-        working-directory: ./disbursements
+        working-directory: ${{ env.DISBURSEMENTS.WORKING_DIRECTORY }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -80,21 +75,12 @@ jobs:
       - name: Run npm install
         run: npm install
       - name: Zip files
-        run: zip -r disbursements-${{ github.sha }}.zip *
+        run: zip -r ${{ env.DISBURSEMENTS.ARTIFACT }} *
       - name: Upload zip to GitHub Actions
         uses: actions/upload-artifact@v3
         with:
-          name: disbursements-${{ github.sha }}.zip
-          path: ./disbursements/disbursements-${{ github.sha }}.zip
-      # - name: Configure AWS credentials
-      #   uses: aws-actions/configure-aws-credentials@v2
-      #   with:
-      #     role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
-      #     aws-region: ${{ secrets.AWS_REGION }}
-      # - name: Copy files to S3
-      #   run: |
-      #     aws s3 cp ${{ github.sha }}.zip s3://${{ secrets.AWS_S3_BUCKET_ID_OREGON }}/disbursements/
-      #     aws s3 cp ${{ github.sha }}.zip s3://${{ secrets.AWS_S3_BUCKET_ID_VIRGINIA }}/disbursements/
+          name: ${{ env.DISBURSEMENTS.ARTIFACT }}
+          path: ${{ env.DISBURSEMENTS.WORKING_DIRECTORY }}/${{ env.DISBURSEMENTS.ARTIFACT }}
 
   #################
   # DEPLOY TO DEV #
@@ -107,22 +93,24 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v3
         with:
-          name: application-${{ github.sha }}.zip
+          name: ${{ env.APPLICATION.ARTIFACT }}
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
       - name: Deploy to dev - Oregon
-        run: aws lambda update-function-code --publish --function-name $FUNCTION --zip-file fileb://$ZIP --region us-west-2
+        run: aws lambda update-function-code --publish --function-name $FUNCTION --zip-file fileb://$ZIP --region $REGION
         env:
           FUNCTION: application
-          ZIP: application-${{ github.sha }}.zip
+          REGION: us-west-2
+          ZIP: ${{ env.APPLICATION.ARTIFACT }}
       - name: Deploy to dev - Virginia
-        run: aws lambda update-function-code --publish --function-name $FUNCTION --zip-file fileb://$ZIP --region us-east-1
+        run: aws lambda update-function-code --publish --function-name $FUNCTION --zip-file fileb://$ZIP --region $REGION
         env:
           FUNCTION: application
-          ZIP: application-${{ github.sha }}.zip
+          REGION: us-east-1
+          ZIP: ${{ env.APPLICATION.ARTIFACT }}
 
   disbursements-to-dev:
     runs-on: ubuntu-latest
@@ -132,22 +120,24 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v3
         with:
-          name: disbursements-${{ github.sha }}.zip
+          name: ${{ env.DISBURSEMENTS.ARTIFACT }}
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
       - name: Deploy to dev - Oregon
-        run: aws lambda update-function-code --publish --function-name $FUNCTION --zip-file fileb://$ZIP --region us-west-2
+        run: aws lambda update-function-code --publish --function-name $FUNCTION --zip-file fileb://$ZIP --region $REGION
         env:
           FUNCTION: disbursements
-          ZIP: disbursements-${{ github.sha }}.zip
+          REGION: us-west-2
+          ZIP: ${{ env.DISBURSEMENTS.ARTIFACT }}
       - name: Deploy to dev - Virginia
-        run: aws lambda update-function-code --publish --function-name $FUNCTION --zip-file fileb://$ZIP --region us-east-1
+        run: aws lambda update-function-code --publish --function-name $FUNCTION --zip-file fileb://$ZIP --region $REGION
         env:
           FUNCTION: disbursements
-          ZIP: disbursements-${{ github.sha }}.zip
+          REGION: us-east-1
+          ZIP: ${{ env.DISBURSEMENTS.ARTIFACT }}
 
   # ##################
   # # DEPLOY TO TEST #
