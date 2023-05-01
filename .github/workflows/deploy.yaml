@@ -62,8 +62,9 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
+          role-session-name: build-${{ env.APPLICATION_FUNCTION_NAME }}
+          role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
       - name: Upload to S3
         run: |
           aws s3 cp ${{ env.APPLICATION_ARTIFACT }} s3://${{ secrets.AWS_S3_BUCKET_ID_OREGON }}/application/
@@ -93,8 +94,9 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
+          role-session-name: build-${{ env.DISBURSEMENTS_FUNCTION_NAME }}
+          role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
       - name: Upload to S3
         run: |
           aws s3 cp ${{ env.DISBURSEMENTS_ARTIFACT }} s3://${{ secrets.AWS_S3_BUCKET_ID_OREGON }}/disbursements/
@@ -115,8 +117,9 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
+          role-session-name: deploy-${{ env.APPLICATION_FUNCTION_NAME }}-to-dev
+          role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
       - name: Deploy to dev - Oregon
         run: aws lambda update-function-code --publish --function-name ${{ env.APPLICATION_FUNCTION_NAME }} --zip-file fileb://${{ env.APPLICATION_ARTIFACT }} --region us-west-2
       - name: Deploy to dev - Virginia
@@ -134,8 +137,9 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
+          role-session-name: deploy-${{ env.DISBURSEMENTS_FUNCTION_NAME }}-to-dev
+          role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
       - name: Deploy to dev - Oregon
         run: aws lambda update-function-code --publish --function-name ${{ env.DISBURSEMENTS_FUNCTION_NAME }} --zip-file fileb://${{ env.DISBURSEMENTS_ARTIFACT }} --region us-west-2
       - name: Deploy to dev - Virginia
@@ -156,8 +160,9 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
+          role-session-name: deploy-${{ env.APPLICATION_FUNCTION_NAME }}-to-test
+          role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
       - name: Deploy to dev - Oregon
         run: aws lambda update-function-code --publish --function-name ${{ env.APPLICATION_FUNCTION_NAME }} --zip-file fileb://${{ env.APPLICATION_ARTIFACT }} --region us-west-2
       - name: Deploy to dev - Virginia
@@ -175,8 +180,9 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
+          role-session-name: deploy-${{ env.DISBURSEMENTS_FUNCTION_NAME }}-to-test
+          role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
       - name: Deploy to dev - Oregon
         run: aws lambda update-function-code --publish --function-name ${{ env.DISBURSEMENTS_FUNCTION_NAME }} --zip-file fileb://${{ env.DISBURSEMENTS_ARTIFACT }} --region us-west-2
       - name: Deploy to dev - Virginia
@@ -197,8 +203,9 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
+          role-session-name: deploy-${{ env.APPLICATION_FUNCTION_NAME }}-to-prod
+          role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
       - name: Deploy to dev - Oregon
         run: aws lambda update-function-code --publish --function-name ${{ env.APPLICATION_FUNCTION_NAME }} --zip-file fileb://${{ env.APPLICATION_ARTIFACT }} --region us-west-2
       - name: Deploy to dev - Virginia
@@ -216,8 +223,9 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
+          role-session-name: deploy-${{ env.DISBURSEMENTS_FUNCTION_NAME }}-to-prod
+          role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
       - name: Deploy to dev - Oregon
         run: aws lambda update-function-code --publish --function-name ${{ env.DISBURSEMENTS_FUNCTION_NAME }} --zip-file fileb://${{ env.DISBURSEMENTS_ARTIFACT }} --region us-west-2
       - name: Deploy to dev - Virginia
