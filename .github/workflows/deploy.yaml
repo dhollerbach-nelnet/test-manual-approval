@@ -32,8 +32,7 @@ jobs:
   ################
   build-application:
     outputs:
-      oregon_s3_object_id: s3://${{ secrets.AWS_S3_BUCKET_ID_OREGON }}/application/${{ github.sha }}.zip
-      virginia_s3_object_id: s3://${{ secrets.AWS_S3_BUCKET_ID_VIRGINIA }}/application/${{ github.sha }}.zip
+      artifact: application-${{ github.sha }}.zip
     runs-on: ubuntu-latest
     needs: check_for_lambda_changes
     if: ${{ needs.check_for_lambda_changes.outputs.application == 'true' }}
@@ -66,8 +65,7 @@ jobs:
 
   build-disbursements:
     outputs:
-      oregon_s3_object_id: s3://${{ secrets.AWS_S3_BUCKET_ID_OREGON }}/disbursements/${{ github.sha }}.zip
-      virginia_s3_object_id: s3://${{ secrets.AWS_S3_BUCKET_ID_VIRGINIA }}/disbursements/${{ github.sha }}.zip
+      artifact: disbursements-${{ github.sha }}.zip
     runs-on: ubuntu-latest
     needs: check_for_lambda_changes
     if: ${{ needs.check_for_lambda_changes.outputs.disbursements == 'true' }}
@@ -98,26 +96,25 @@ jobs:
       #     aws s3 cp ${{ github.sha }}.zip s3://${{ secrets.AWS_S3_BUCKET_ID_OREGON }}/disbursements/
       #     aws s3 cp ${{ github.sha }}.zip s3://${{ secrets.AWS_S3_BUCKET_ID_VIRGINIA }}/disbursements/
 
-  # #################
-  # # DEPLOY TO DEV #
-  # #################
-  # application-to-dev:
-  #   runs-on: ubuntu-latest
-  #   needs: build-application
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - run: echo 'Deploying application to dev'
-  #     - run: aws lambda update-function-code --publish --function-name $FUNCTION --zip-file fileb://dist/lambda.zip
-  #       env:
-  #         FUNCTION: application
-  #         S3_OBJECT_ID: 
+  #################
+  # DEPLOY TO DEV #
+  #################
+  application-to-dev:
+    runs-on: ubuntu-latest
+    needs: build-application
+    steps:
+      - uses: actions/checkout@v3
+      - run: aws lambda update-function-code --publish --function-name $FUNCTION --zip-file fileb://${{ needs.outputs.build-application.artifact }}
+        env:
+          FUNCTION: application
+          S3_OBJECT_ID: 
 
-  # disbursements-to-dev:
-  #   runs-on: ubuntu-latest
-  #   needs: build-disbursements
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - run: echo 'Deploying disbursements to dev'
+  disbursements-to-dev:
+    runs-on: ubuntu-latest
+    needs: build-disbursements
+    steps:
+      - uses: actions/checkout@v3
+      - run: aws lambda update-function-code --publish --function-name $FUNCTION --zip-file fileb://${{ needs.outputs.build-disbursements.artifact }}
 
   # ##################
   # # DEPLOY TO TEST #
