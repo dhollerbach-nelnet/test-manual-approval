@@ -104,22 +104,30 @@ jobs:
     needs: build-application
     steps:
       - uses: actions/checkout@v3
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: application-${{ github.sha }}.zip
       - name: Deploy to dev
         run: aws lambda update-function-code --publish --function-name $FUNCTION --zip-file fileb://$ZIP
         env:
           FUNCTION: application
-          ZIP: ${{ needs.build-application.outputs.artifact }}
+          ZIP: application-${{ github.sha }}.zip
 
   disbursements-to-dev:
     runs-on: ubuntu-latest
     needs: build-disbursements
     steps:
       - uses: actions/checkout@v3
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: disbursements-${{ github.sha }}.zip
       - name: Deploy to dev
         run: aws lambda update-function-code --publish --function-name $FUNCTION --zip-file fileb://$ZIP
         env:
-          FUNCTION: application
-          ZIP: ${{ needs.build-disbursements.outputs.artifact }}
+          FUNCTION: disbursements
+          ZIP: disbursements-${{ github.sha }}.zip
 
   # ##################
   # # DEPLOY TO TEST #
