@@ -52,7 +52,7 @@ jobs:
       - name: Upload zip to GitHub Actions
         uses: actions/upload-artifact@v3
         with:
-          name: ./application/application-${{ github.sha }}.zip
+          name: application-${{ github.sha }}.zip
           path: ./application/application-${{ github.sha }}.zip
       # - name: Configure AWS credentials
       #   uses: aws-actions/configure-aws-credentials@v2
@@ -86,7 +86,7 @@ jobs:
       - name: Upload zip to GitHub Actions
         uses: actions/upload-artifact@v3
         with:
-          name: ./disbursements/disbursements-${{ github.sha }}.zip
+          name: disbursements-${{ github.sha }}.zip
           path: ./disbursements/disbursements-${{ github.sha }}.zip
       # - name: Configure AWS credentials
       #   uses: aws-actions/configure-aws-credentials@v2
