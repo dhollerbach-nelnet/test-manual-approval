@@ -1,0 +1,123 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  check_for_lambda_changes:
+    outputs:
+      application: ${{ steps.changes.outputs.application }}
+      disbursements: ${{ steps.changes.outputs.disbursements }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            application:
+              - 'application/**'
+            disbursements:
+              - 'disbursements/**'
+
+  ###############
+  # APPLICATION #
+  ###############
+  # s3
+  application-to-s3:
+    runs-on: ubuntu-latest
+    needs: check_for_lambda_changes
+    if: ${{ needs.check_for_lambda_changes.outputs.application == 'true' }}
+    defaults:
+      run:
+        working-directory: ./application
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - run: echo 'Deploying application to s3'
+    
+  # dev
+  application-to-dev:
+    runs-on: ubuntu-latest
+    needs: application-to-s3
+    steps:
+      - uses: actions/checkout@v3
+
+      - run: echo 'Deploying application to dev'
+
+  # test
+  application-to-test:
+    runs-on: ubuntu-latest
+    needs: application-to-dev
+    steps:
+      - uses: actions/checkout@v3
+
+      - run: echo 'Deploying application to test'
+
+  # prod
+  application-to-prod:
+    runs-on: ubuntu-latest
+    needs: application-to-test
+    steps:
+      - uses: actions/checkout@v3
+
+      - run: echo 'Deploying application to prod'
+
+  #################
+  # DISBURSEMENTS #
+  #################
+  # s3
+  disbursements-to-s3:
+    runs-on: ubuntu-latest
+    needs: check_for_lambda_changes
+    if: ${{ needs.check_for_lambda_changes.outputs.disbursements == 'true' }}
+    defaults:
+      run:
+        working-directory: ./disbursements
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - run: echo 'Deploying application to s3'
+
+  # dev
+  disbursements-to-dev:
+    runs-on: ubuntu-latest
+    needs: disbursements-to-s3
+    steps:
+      - uses: actions/checkout@v3
+
+      - run: echo 'Deploying disbursements to dev'
+
+  # test
+  disbursements-to-test:
+    runs-on: ubuntu-latest
+    needs: disbursements-to-dev
+    steps:
+      - uses: actions/checkout@v3
+
+      - run: echo 'Deploying disbursements to test'
+
+  # prod
+  disbursements-to-prod:
+    runs-on: ubuntu-latest
+    needs: disbursements-to-test
+    steps:
+      - uses: actions/checkout@v3
+
+      - run: echo 'Deploying disbursements to prod'
