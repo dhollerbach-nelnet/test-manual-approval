@@ -108,8 +108,18 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: application-${{ github.sha }}.zip
-      - name: Deploy to dev
-        run: aws lambda update-function-code --publish --function-name $FUNCTION --zip-file fileb://$ZIP
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Deploy to dev - Oregon
+        run: aws lambda update-function-code --publish --function-name $FUNCTION --zip-file fileb://$ZIP --region us-west-2
+        env:
+          FUNCTION: application
+          ZIP: application-${{ github.sha }}.zip
+      - name: Deploy to dev - Virginia
+        run: aws lambda update-function-code --publish --function-name $FUNCTION --zip-file fileb://$ZIP --region us-east-1
         env:
           FUNCTION: application
           ZIP: application-${{ github.sha }}.zip
@@ -123,8 +133,18 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: disbursements-${{ github.sha }}.zip
-      - name: Deploy to dev
-        run: aws lambda update-function-code --publish --function-name $FUNCTION --zip-file fileb://$ZIP
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Deploy to dev - Oregon
+        run: aws lambda update-function-code --publish --function-name $FUNCTION --zip-file fileb://$ZIP --region us-west-2
+        env:
+          FUNCTION: disbursements
+          ZIP: disbursements-${{ github.sha }}.zip
+      - name: Deploy to dev - Virginia
+        run: aws lambda update-function-code --publish --function-name $FUNCTION --zip-file fileb://$ZIP --region us-east-1
         env:
           FUNCTION: disbursements
           ZIP: disbursements-${{ github.sha }}.zip
