@@ -207,7 +207,7 @@ jobs:
   deploy-disbursements-to-prod:
     runs-on: ubuntu-latest
     needs: deploy-disbursements-to-test
-    enviornment: prod
+    environment: prod
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v3
