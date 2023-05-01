@@ -55,14 +55,6 @@ jobs:
 
       - run: echo 'Deploying application to dev'
 
-  application-to-test:
-    runs-on: ubuntu-latest
-    needs: application-to-dev
-    steps:
-      - uses: actions/checkout@v3
-
-      - run: echo 'Deploying application to test'
-
   #################
   # DISBURSEMENTS #
   #################
@@ -90,9 +82,29 @@ jobs:
 
       - run: echo 'Deploying disbursements to dev'
 
+  ##################
+  # DEPLOY TO TEST #
+  ##################
+  require-developer-approval:
+    runs-on: ubuntu-latest
+    needs: [application-to-dev, disbursements-to-dev]
+    environment: test
+    steps:
+      - uses: actions/checkout@v3
+
+      - run: echo 'Waiting for developer approval'
+
+  application-to-test:
+    runs-on: ubuntu-latest
+    needs: require-developer-approval
+    steps:
+      - uses: actions/checkout@v3
+
+      - run: echo 'Deploying application to test'
+
   disbursements-to-test:
     runs-on: ubuntu-latest
-    needs: disbursements-to-dev
+    needs: require-developer-approval
     steps:
       - uses: actions/checkout@v3
 
@@ -108,7 +120,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - run: echo 'Waiting for approval'
+      - run: echo 'Waiting for business approval'
 
   application-to-prod:
     runs-on: ubuntu-latest
