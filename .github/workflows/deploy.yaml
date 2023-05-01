@@ -63,8 +63,6 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-region: ${{ secrets.AWS_REGION }}
-          role-duration-seconds: 900
-          role-session-name: build-${{ env.APPLICATION_FUNCTION_NAME }}
           role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
       - name: Upload to S3
         run: |
@@ -96,8 +94,6 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-region: ${{ secrets.AWS_REGION }}
-          role-duration-seconds: 900
-          role-session-name: build-${{ env.DISBURSEMENTS_FUNCTION_NAME }}
           role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
       - name: Upload to S3
         run: |
@@ -120,8 +116,6 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-region: ${{ secrets.AWS_REGION }}
-          role-duration-seconds: 900
-          role-session-name: dev-${{ env.APPLICATION_FUNCTION_NAME }}
           role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
       - name: Deploy to dev - Oregon
         run: aws lambda update-function-code --publish --function-name ${{ env.APPLICATION_FUNCTION_NAME }} --zip-file fileb://${{ env.APPLICATION_ARTIFACT }} --region us-west-2
@@ -141,8 +135,6 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-region: ${{ secrets.AWS_REGION }}
-          role-duration-seconds: 900
-          role-session-name: dev-${{ env.DISBURSEMENTS_FUNCTION_NAME }}
           role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
       - name: Deploy to dev - Oregon
         run: aws lambda update-function-code --publish --function-name ${{ env.DISBURSEMENTS_FUNCTION_NAME }} --zip-file fileb://${{ env.DISBURSEMENTS_ARTIFACT }} --region us-west-2
@@ -165,7 +157,6 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-region: ${{ secrets.AWS_REGION }}
-          role-session-name: test-${{ env.APPLICATION_FUNCTION_NAME }}
           role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
       - name: Deploy to dev - Oregon
         run: aws lambda update-function-code --publish --function-name ${{ env.APPLICATION_FUNCTION_NAME }} --zip-file fileb://${{ env.APPLICATION_ARTIFACT }} --region us-west-2
@@ -185,7 +176,6 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-region: ${{ secrets.AWS_REGION }}
-          role-session-name: test-${{ env.DISBURSEMENTS_FUNCTION_NAME }}
           role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
       - name: Deploy to dev - Oregon
         run: aws lambda update-function-code --publish --function-name ${{ env.DISBURSEMENTS_FUNCTION_NAME }} --zip-file fileb://${{ env.DISBURSEMENTS_ARTIFACT }} --region us-west-2
@@ -208,7 +198,6 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-region: ${{ secrets.AWS_REGION }}
-          role-session-name: prod-${{ env.APPLICATION_FUNCTION_NAME }}
           role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
       - name: Deploy to dev - Oregon
         run: aws lambda update-function-code --publish --function-name ${{ env.APPLICATION_FUNCTION_NAME }} --zip-file fileb://${{ env.APPLICATION_ARTIFACT }} --region us-west-2
@@ -228,7 +217,6 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-region: ${{ secrets.AWS_REGION }}
-          role-session-name: prod-${{ env.DISBURSEMENTS_FUNCTION_NAME }}
           role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
       - name: Deploy to dev - Oregon
         run: aws lambda update-function-code --publish --function-name ${{ env.DISBURSEMENTS_FUNCTION_NAME }} --zip-file fileb://${{ env.DISBURSEMENTS_ARTIFACT }} --region us-west-2
