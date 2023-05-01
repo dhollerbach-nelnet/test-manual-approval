@@ -103,10 +103,16 @@ jobs:
   #################
   # DEPLOY TO DEV #
   #################
-  deploy-application-to-dev:
+  require-builds:
     runs-on: ubuntu-latest
     needs: [build-application, build-disbursements]
     environment: dev
+    steps:
+      - uses: actions/checkout@v3
+
+  deploy-application-to-dev:
+    runs-on: ubuntu-latest
+    needs: require-builds
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v3
@@ -124,8 +130,7 @@ jobs:
 
   deploy-disbursements-to-dev:
     runs-on: ubuntu-latest
-    needs: [build-application, build-disbursements]
-    environment: dev
+    needs: require-builds
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v3
@@ -144,10 +149,16 @@ jobs:
   ##################
   # DEPLOY TO TEST #
   ##################
-  deploy-application-to-test:
+  require-developer-approval:
     runs-on: ubuntu-latest
     needs: [deploy-application-to-dev, deploy-disbursements-to-dev]
     environment: test
+    steps:
+      - uses: actions/checkout@v3
+
+  deploy-application-to-test:
+    runs-on: ubuntu-latest
+    needs: require-developer-approval
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v3
@@ -165,8 +176,7 @@ jobs:
 
   deploy-disbursements-to-test:
     runs-on: ubuntu-latest
-    needs: [deploy-application-to-dev, deploy-disbursements-to-dev]
-    environment: test
+    needs: require-developer-approval
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v3
@@ -185,10 +195,16 @@ jobs:
   ##################
   # DEPLOY TO PROD #
   ##################
-  deploy-application-to-prod:
+  require-business-approval:
     runs-on: ubuntu-latest
     needs: [deploy-application-to-test, deploy-disbursements-to-test]
     environment: prod
+    steps:
+      - uses: actions/checkout@v3
+
+  deploy-application-to-prod:
+    runs-on: ubuntu-latest
+    needs: require-business-approval
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v3
@@ -206,8 +222,7 @@ jobs:
 
   deploy-disbursements-to-prod:
     runs-on: ubuntu-latest
-    needs: [deploy-application-to-test, deploy-disbursements-to-test]
-    environment: prod
+    needs: require-business-approval
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v3
