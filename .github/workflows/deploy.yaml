@@ -104,17 +104,22 @@ jobs:
     needs: build-application
     steps:
       - uses: actions/checkout@v3
-      - run: aws lambda update-function-code --publish --function-name $FUNCTION --zip-file fileb://${{ needs.build-application.outputs.artifact }}
+      - name: Deploy to dev
+        run: aws lambda update-function-code --publish --function-name $FUNCTION --zip-file fileb://$ZIP
         env:
           FUNCTION: application
-          S3_OBJECT_ID: 
+          ZIP: ${{ needs.build-application.outputs.artifact }}
 
   disbursements-to-dev:
     runs-on: ubuntu-latest
     needs: build-disbursements
     steps:
       - uses: actions/checkout@v3
-      - run: aws lambda update-function-code --publish --function-name $FUNCTION --zip-file fileb://${{ needs.build-disbursements.outputs.artifact }}
+      - name: Deploy to dev
+        run: aws lambda update-function-code --publish --function-name $FUNCTION --zip-file fileb://$ZIP
+        env:
+          FUNCTION: application
+          ZIP: ${{ needs.build-disbursements.outputs.artifact }}
 
   # ##################
   # # DEPLOY TO TEST #
