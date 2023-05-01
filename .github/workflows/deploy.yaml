@@ -106,7 +106,7 @@ jobs:
   deploy-application-to-dev:
     runs-on: ubuntu-latest
     needs: [build-application, build-disbursements]
-    enviornment: dev
+    environment: dev
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v3
