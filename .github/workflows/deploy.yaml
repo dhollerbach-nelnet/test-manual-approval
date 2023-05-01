@@ -19,7 +19,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       - uses: dorny/paths-filter@v2
-        id: changes
         with:
           filters: |
             application:
@@ -42,8 +41,20 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 18
-      - run: echo 'Deploying application to s3'
-    
+      - name: Run npm install
+        run: npm install
+      - name: Zip files
+        run: zip -r ${{ github.sha }}.zip *
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets..AWS_IAM_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Copy files to S3
+        run: |
+          aws s3 cp ${{ github.sha }}.zip s3://${{ secrets.AWS_S3_BUCKET_ID_OREGON }}/application/
+          aws s3 cp ${{ github.sha }}.zip s3://${{ secrets.AWS_S3_BUCKET_ID_VIRGINIA }}/application/
+
   disbursements-to-s3:
     runs-on: ubuntu-latest
     needs: check_for_lambda_changes
@@ -56,7 +67,19 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 18
-      - run: echo 'Deploying application to s3'
+      - name: Run npm install
+        run: npm install
+      - name: Zip files
+        run: zip -r ${{ github.sha }}.zip *
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets..AWS_IAM_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Copy files to S3
+        run: |
+          aws s3 cp ${{ github.sha }}.zip s3://${{ secrets.AWS_S3_BUCKET_ID_OREGON }}/disbursements/
+          aws s3 cp ${{ github.sha }}.zip s3://${{ secrets.AWS_S3_BUCKET_ID_VIRGINIA }}/disbursements/
 
   #################
   # DEPLOY TO DEV #
