@@ -63,6 +63,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-region: ${{ secrets.AWS_REGION }}
+          role-duration-seconds: 10
           role-session-name: build-${{ env.APPLICATION_FUNCTION_NAME }}
           role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
       - name: Upload to S3
@@ -95,6 +96,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-region: ${{ secrets.AWS_REGION }}
+          role-duration-seconds: 10
           role-session-name: build-${{ env.DISBURSEMENTS_FUNCTION_NAME }}
           role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
       - name: Upload to S3
