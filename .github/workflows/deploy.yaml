@@ -93,7 +93,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: require-builds
     steps:
-      - uses: actions/checkout@v3
       - name: Download artifact
         uses: actions/download-artifact@v3
         with:
@@ -120,7 +119,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: require-builds
     steps:
-      - uses: actions/checkout@v3
       - name: Download artifact
         uses: actions/download-artifact@v3
         with:
@@ -143,52 +141,128 @@ jobs:
           REGION: us-east-1
           ZIP: ${{ env.DISBURSEMENTS_ARTIFACT }}
 
-  # ##################
-  # # DEPLOY TO TEST #
-  # ##################
-  # require-developer-approval:
-  #   runs-on: ubuntu-latest
-  #   needs: [deploy-application-to-dev, deploy-disbursements-to-dev]
-  #   environment: test
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - run: echo 'Waiting for developer approval'
+  ##################
+  # DEPLOY TO TEST #
+  ##################
+  require-developer-approval:
+    runs-on: ubuntu-latest
+    needs: [deploy-application-to-dev, deploy-disbursements-to-dev]
+    environment: test
+    steps:
+      - uses: actions/checkout@v3
+      - run: echo 'Waiting for developer approval'
 
-  # deploy-application-to-test:
-  #   runs-on: ubuntu-latest
-  #   needs: require-developer-approval
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - run: echo 'Deploying application to test'
+  deploy-application-to-test:
+    runs-on: ubuntu-latest
+    needs: require-developer-approval
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ env.APPLICATION_ARTIFACT }}
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Deploy to dev - Oregon
+        run: aws lambda update-function-code --publish --function-name $FUNCTION --zip-file fileb://$ZIP --region $REGION
+        env:
+          FUNCTION: application
+          REGION: us-west-2
+          ZIP: ${{ env.APPLICATION_ARTIFACT }}
+      - name: Deploy to dev - Virginia
+        run: aws lambda update-function-code --publish --function-name $FUNCTION --zip-file fileb://$ZIP --region $REGION
+        env:
+          FUNCTION: application
+          REGION: us-east-1
+          ZIP: ${{ env.APPLICATION_ARTIFACT }}
 
-  # deploy-disbursements-to-test:
-  #   runs-on: ubuntu-latest
-  #   needs: require-developer-approval
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - run: echo 'Deploying disbursements to test'
+  deploy-disbursements-to-test:
+    runs-on: ubuntu-latest
+    needs: require-developer-approval
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ env.DISBURSEMENTS_ARTIFACT }}
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Deploy to dev - Oregon
+        run: aws lambda update-function-code --publish --function-name $FUNCTION --zip-file fileb://$ZIP --region $REGION
+        env:
+          FUNCTION: disbursements
+          REGION: us-west-2
+          ZIP: ${{ env.DISBURSEMENTS_ARTIFACT }}
+      - name: Deploy to dev - Virginia
+        run: aws lambda update-function-code --publish --function-name $FUNCTION --zip-file fileb://$ZIP --region $REGION
+        env:
+          FUNCTION: disbursements
+          REGION: us-east-1
+          ZIP: ${{ env.DISBURSEMENTS_ARTIFACT }}
 
-  # ##################
-  # # DEPLOY TO PROD #
-  # ##################
-  # require-business-approval:
-  #   runs-on: ubuntu-latest
-  #   needs: [deploy-application-to-test, deploy-disbursements-to-test]
-  #   environment: prod
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - run: echo 'Waiting for business approval'
+  ##################
+  # DEPLOY TO PROD #
+  ##################
+  require-business-approval:
+    runs-on: ubuntu-latest
+    needs: [deploy-application-to-test, deploy-disbursements-to-test]
+    environment: prod
+    steps:
+      - uses: actions/checkout@v3
+      - run: echo 'Waiting for business approval'
 
-  # deploy-application-to-prod:
-  #   runs-on: ubuntu-latest
-  #   needs: require-business-approval
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - run: echo 'Deploying application to prod'
+  deploy-application-to-prod:
+    runs-on: ubuntu-latest
+    needs: require-business-approval
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ env.APPLICATION_ARTIFACT }}
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Deploy to dev - Oregon
+        run: aws lambda update-function-code --publish --function-name $FUNCTION --zip-file fileb://$ZIP --region $REGION
+        env:
+          FUNCTION: application
+          REGION: us-west-2
+          ZIP: ${{ env.APPLICATION_ARTIFACT }}
+      - name: Deploy to dev - Virginia
+        run: aws lambda update-function-code --publish --function-name $FUNCTION --zip-file fileb://$ZIP --region $REGION
+        env:
+          FUNCTION: application
+          REGION: us-east-1
+          ZIP: ${{ env.APPLICATION_ARTIFACT }}
 
-  # deploy-disbursements-to-prod:
-  #   runs-on: ubuntu-latest
-  #   needs: require-business-approval
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #     - run: echo 'Deploying disbursements to prod'
+  deploy-disbursements-to-prod:
+    runs-on: ubuntu-latest
+    needs: require-business-approval
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ env.DISBURSEMENTS_ARTIFACT }}
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.AWS_IAM_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Deploy to dev - Oregon
+        run: aws lambda update-function-code --publish --function-name $FUNCTION --zip-file fileb://$ZIP --region $REGION
+        env:
+          FUNCTION: disbursements
+          REGION: us-west-2
+          ZIP: ${{ env.DISBURSEMENTS_ARTIFACT }}
+      - name: Deploy to dev - Virginia
+        run: aws lambda update-function-code --publish --function-name $FUNCTION --zip-file fileb://$ZIP --region $REGION
+        env:
+          FUNCTION: disbursements
+          REGION: us-east-1
+          ZIP: ${{ env.DISBURSEMENTS_ARTIFACT }}
